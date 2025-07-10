@@ -21,10 +21,17 @@ type ListingsTableProps = {
 
 export default function ListingsTable({ listings, onApprove, onReject, onEdit }: ListingsTableProps) {
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const filteredListings = listings.filter(listing => 
     statusFilter === 'all' || listing.status === statusFilter
   );
+
+  const totalPages = Math.ceil(filteredListings.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const currentListings = filteredListings.slice(startIndex, endIndex);
 
   const getStatusBadge = (status: string) => {
     const baseClasses = "px-2 py-1 rounded-full text-xs font-medium";
@@ -51,22 +58,45 @@ export default function ListingsTable({ listings, onApprove, onReject, onEdit }:
     }).format(price);
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setCurrentPage(1);
+  };
+
   return (
     <div className="bg-white rounded-lg shadow">
       <div className="p-6 border-b border-gray-200">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-900">Car Listings</h2>
           <div className="flex items-center gap-4">
-            <label className="text-sm font-medium text-gray-700">Filter by status:</label>
+            <label className="text-sm font-medium text-black">Filter by status:</label>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="border border-gray-300 rounded px-3 py-1 text-sm text-black"
             >
               <option value="all">All</option>
               <option value="pending">Pending</option>
               <option value="approved">Approved</option>
               <option value="rejected">Rejected</option>
+            </select>
+            <label className="text-sm font-medium text-black">Show:</label>
+            <select
+              value={pageSize}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+              className="border border-gray-300 rounded px-3 py-1 text-sm text-black"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
             </select>
           </div>
         </div>
@@ -94,7 +124,7 @@ export default function ListingsTable({ listings, onApprove, onReject, onEdit }:
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredListings.map((listing) => (
+            {currentListings.map((listing) => (
               <tr key={listing.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div>
@@ -144,6 +174,61 @@ export default function ListingsTable({ listings, onApprove, onReject, onEdit }:
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {filteredListings.length > 0 && (
+        <div className="px-6 py-4 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-black">
+              Showing {startIndex + 1} to {Math.min(endIndex, filteredListings.length)} of {filteredListings.length} results
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-black"
+              >
+                Previous
+              </button>
+              
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    className={`px-3 py-1 text-sm border rounded ${
+                      currentPage === pageNum
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'border-gray-300 hover:bg-gray-50 text-black'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-black"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {filteredListings.length === 0 && (
         <div className="text-center py-8 text-gray-500">
