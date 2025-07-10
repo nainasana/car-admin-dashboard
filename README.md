@@ -286,4 +286,4 @@ This project is for educational and assessment purposes.
 
 ---
 
-**Built with ❤️ using Next.js, TypeScript, and Tailwind CSS**
+**Built with ❤️ by Sana using Next.js, TypeScript, and Tailwind CSS**

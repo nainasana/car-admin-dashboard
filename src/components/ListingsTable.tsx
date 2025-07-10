@@ -61,7 +61,7 @@ export default function ListingsTable({ listings, onApprove, onReject, onEdit }:
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-300 rounded px-3 py-1 text-sm"
+              className="border border-gray-300 rounded px-3 py-1 text-sm text-black"
             >
               <option value="all">All</option>
               <option value="pending">Pending</option>
